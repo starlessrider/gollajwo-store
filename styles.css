@@ -362,7 +362,7 @@ h2 {
   font-size: 34px;
 }
 
-body:not(.is-coach-unlocked) .app-shell {
+body.coach-page:not(.is-coach-unlocked) .app-shell {
   visibility: hidden;
 }
 
