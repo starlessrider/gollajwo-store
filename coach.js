@@ -7,12 +7,49 @@ const scripts = [
 ];
 
 const config = window.GOLLAJWO_CONFIG || {};
+const authGate = document.querySelector("#auth-gate");
+const authForm = document.querySelector("#auth-form");
+const authStatus = document.querySelector("#auth-status");
 const talkScript = document.querySelector("#talk-script");
 const copyStatus = document.querySelector("#copy-status");
 const sendStatus = document.querySelector("#send-status");
 const voteCount = document.querySelector("#vote-count");
 const commentCount = document.querySelector("#comment-count");
 const noteList = document.querySelector("#note-list");
+const sessionKey = "gollajwo:coach-auth";
+
+function unlockCoach() {
+  authGate.hidden = true;
+  document.body.classList.add("is-coach-unlocked");
+  loadSummary();
+}
+
+function isCoachAuthenticated() {
+  return sessionStorage.getItem(sessionKey) === "ok";
+}
+
+function setupAuthGate() {
+  document.body.classList.remove("is-coach-unlocked");
+  if (isCoachAuthenticated()) {
+    unlockCoach();
+    return;
+  }
+
+  authForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+    const form = new FormData(authForm);
+    const user = String(form.get("coachUser") || "").trim();
+    const pass = String(form.get("coachPass") || "");
+
+    if (user === config.coachUser && pass === config.coachPass) {
+      sessionStorage.setItem(sessionKey, "ok");
+      unlockCoach();
+      return;
+    }
+
+    authStatus.textContent = "아이디나 비밀번호가 맞지 않아요.";
+  });
+}
 
 function pickScript() {
   const current = talkScript.textContent.trim().replace(/^"|"$/g, "");
@@ -103,7 +140,16 @@ function renderSummary(summary) {
     notes.push(`${item.nickname || "익명"}: ${item.comment}`);
   });
 
-  noteList.innerHTML = notes.map((note) => `<li>${note}</li>`).join("");
+  noteList.innerHTML = notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("");
+}
+
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 document.querySelector("#new-script").addEventListener("click", pickScript);
@@ -139,4 +185,4 @@ document.querySelector("#send-form").addEventListener("submit", async (event) =>
     : "지금은 이 기기에만 임시로 확인했어요. Apps Script URL을 넣으면 시트에 저장돼요.";
 });
 
-loadSummary();
+setupAuthGate();

@@ -1,30 +1,3 @@
-const products = [
-  {
-    id: "sticker",
-    name: "스티커 미니팩",
-    price: "3,900원",
-    items: ["스티커 5장", "미니 봉투", "친구 선물용 메모지"],
-    accent: "#f97316",
-    visual: "stickers",
-  },
-  {
-    id: "birthday",
-    name: "생일 미니팩",
-    price: "5,900원",
-    items: ["작은 포장 봉투", "키링 또는 헤어핀", "축하 카드"],
-    accent: "#14b8a6",
-    visual: "gift",
-  },
-  {
-    id: "photo",
-    name: "포카 꾸미기팩",
-    price: "7,900원",
-    items: ["탑로더", "꾸미기 스티커", "리본 데코"],
-    accent: "#e11d48",
-    visual: "photo",
-  },
-];
-
 const reactions = ["사고 싶음", "선물용 좋음", "조금 비쌈", "구성 바꾸면 좋음"];
 const config = window.GOLLAJWO_CONFIG || {};
 const localVotes = JSON.parse(localStorage.getItem("gollajwo:votes") || "[]");
@@ -32,6 +5,33 @@ const localComments = JSON.parse(localStorage.getItem("gollajwo:comments") || "[
 
 const productList = document.querySelector("#product-list");
 const submitStatus = document.querySelector("#submit-status");
+
+const fallbackProducts = [
+  {
+    id: "sticker",
+    name: "스티커 미니팩",
+    price: "3천원대",
+    items: ["스티커 5장", "미니 봉투", "친구 선물용 메모지"],
+    accent: "#f97316",
+    visual: "stickers",
+  },
+  {
+    id: "birthday",
+    name: "생일 미니팩",
+    price: "5천원대",
+    items: ["작은 포장 봉투", "키링 또는 헤어핀", "축하 카드"],
+    accent: "#14b8a6",
+    visual: "gift",
+  },
+  {
+    id: "photo",
+    name: "포카 꾸미기팩",
+    price: "7천원대",
+    items: ["탑로더", "꾸미기 스티커", "리본 데코"],
+    accent: "#e11d48",
+    visual: "photo",
+  },
+];
 
 function productVisual(type, accent) {
   if (type === "gift") {
@@ -72,24 +72,56 @@ function productVisual(type, accent) {
   `;
 }
 
-function renderProducts() {
-  productList.innerHTML = products
+function escapeHtml(value) {
+  return String(value || "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+function normalizeProduct(product) {
+  return {
+    id: product.id || product.productId || crypto.randomUUID(),
+    name: product.name || product.displayName || "이름 없는 상품",
+    price: product.price || product.priceLabel || "가격 미정",
+    items: Array.isArray(product.items) ? product.items.filter(Boolean).slice(0, 4) : [],
+    accent: product.accent || "#f97316",
+    visual: product.visual || "stickers",
+    imageUrl: product.imageUrl || "",
+  };
+}
+
+function renderProducts(products) {
+  const normalizedProducts = products.map(normalizeProduct);
+
+  if (normalizedProducts.length === 0) {
+    productList.innerHTML = '<p class="empty-state">지금은 열려 있는 상품 후보가 없어요.</p>';
+    return;
+  }
+
+  productList.innerHTML = normalizedProducts
     .map(
       (product) => `
         <article class="product-card">
-          <div class="product-visual">${productVisual(product.visual, product.accent)}</div>
+          <div class="product-visual">${
+            product.imageUrl
+              ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)} 이미지" loading="lazy" />`
+              : productVisual(product.visual, product.accent)
+          }</div>
           <div class="product-topline">
-            <h3>${product.name}</h3>
-            <span class="price">${product.price}</span>
+            <h3>${escapeHtml(product.name)}</h3>
+            <span class="price">${escapeHtml(product.price)}</span>
           </div>
           <ul>
-            ${product.items.map((item) => `<li>${item}</li>`).join("")}
+            ${product.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
           </ul>
           <div class="reaction-grid" aria-label="${product.name} 반응">
             ${reactions
               .map(
                 (reaction) => `
-                  <button class="reaction-button" type="button" data-product="${product.id}" data-product-name="${product.name}" data-reaction="${reaction}">
+                  <button class="reaction-button" type="button" data-product="${escapeHtml(product.id)}" data-product-name="${escapeHtml(product.name)}" data-reaction="${escapeHtml(reaction)}">
                     ${reaction}
                   </button>
                 `,
@@ -100,6 +132,29 @@ function renderProducts() {
       `,
     )
     .join("");
+}
+
+function loadProducts() {
+  if (!config.scriptUrl) {
+    renderProducts(fallbackProducts);
+    return;
+  }
+
+  const callbackName = `gollajwoProducts${Date.now()}`;
+  window[callbackName] = (payload) => {
+    renderProducts(Array.isArray(payload.products) ? payload.products : fallbackProducts);
+    delete window[callbackName];
+    script.remove();
+  };
+
+  const script = document.createElement("script");
+  script.src = `${config.scriptUrl}?action=products&callback=${callbackName}`;
+  script.onerror = () => {
+    renderProducts(fallbackProducts);
+    delete window[callbackName];
+    script.remove();
+  };
+  document.body.appendChild(script);
 }
 
 function postToSheet(payload) {
@@ -142,7 +197,7 @@ function flashButton(button, text = "기록됨") {
   }, 900);
 }
 
-renderProducts();
+loadProducts();
 
 productList.addEventListener("click", async (event) => {
   const button = event.target.closest(".reaction-button");

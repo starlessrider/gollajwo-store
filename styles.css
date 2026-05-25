@@ -199,6 +199,19 @@ h2 {
   display: block;
 }
 
+.product-visual img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.empty-state {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
 .product-topline {
   display: flex;
   align-items: flex-start;
@@ -306,6 +319,51 @@ h2 {
   min-height: 22px;
   margin-top: 10px !important;
   font-size: 13px;
+}
+
+.submit-status {
+  min-height: 22px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.auth-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background:
+    linear-gradient(90deg, rgba(31, 41, 55, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(31, 41, 55, 0.04) 1px, transparent 1px),
+    var(--paper);
+  background-size: 22px 22px;
+}
+
+.auth-gate[hidden] {
+  display: none;
+}
+
+.auth-card {
+  display: grid;
+  width: min(100%, 420px);
+  gap: 12px;
+  padding: 22px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+
+.auth-card h1 {
+  font-size: 34px;
+}
+
+body:not(.is-coach-unlocked) .app-shell {
+  visibility: hidden;
 }
 
 .feedback-form {
