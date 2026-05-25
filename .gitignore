@@ -1,0 +1,9 @@
+# Internal context notes. Do not publish student-specific background.
+student-context.md
+google-sheets-setup.md
+deploy.md
+gollajwo-responses-template.xlsx
+google-apps-script/
+
+# Local OS/editor files
+.DS_Store

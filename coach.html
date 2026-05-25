@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>골라줘상점 코치</title>
+    <meta name="description" content="골라줘상점 운영자가 친구에게 보낼 문장과 반응 요약을 확인하는 화면" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2314B8A6'/%3E%3Cpath d='M18 34l9 9 20-24' fill='none' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero coach-hero" aria-labelledby="coach-title">
+        <div class="brand-row" aria-label="브랜드">
+          <span class="brand-mark">✓</span>
+          <span class="brand-name">골라줘상점</span>
+        </div>
+
+        <p class="eyebrow">본인용 준비 화면</p>
+        <h1 id="coach-title">오늘은 딱 한 명에게만 보내도 성공.</h1>
+        <p class="hero-copy">
+          친구에게 보일 화면이 아니라, 보내기 전에 문장을 고르고 반응을 확인하는 운영자 화면이야.
+        </p>
+      </section>
+
+      <section class="section talk-card" aria-labelledby="talk-title">
+        <p class="eyebrow">그대로 보내기</p>
+        <h2 id="talk-title">친구에게 보낼 문장</h2>
+        <p id="talk-script" class="talk-script">
+          "나 작은 상점 연습 중인데, 셋 중에 뭐가 제일 별로인지 30초만 골라줄 수 있어?"
+        </p>
+        <div class="button-row">
+          <button class="secondary-button" type="button" id="new-script">다른 문장</button>
+          <button class="primary-button" type="button" id="copy-script">문장 복사</button>
+        </div>
+        <p class="copy-status" id="copy-status" role="status" aria-live="polite"></p>
+      </section>
+
+      <section class="section" aria-labelledby="send-title">
+        <p class="eyebrow">작은 목표</p>
+        <h2 id="send-title">오늘 누구에게 보내볼까?</h2>
+        <form class="feedback-form" id="send-form">
+          <label for="target-hint">친구 표시</label>
+          <input id="target-hint" name="targetHint" type="text" maxlength="24" placeholder="예: 같은 반, 포카 좋아하는 친구" />
+
+          <label for="reply-note">보낸 뒤 메모</label>
+          <textarea id="reply-note" name="replyNote" rows="3" maxlength="160" placeholder="예: 답장 아직 없음 / 웃으면서 골라줌"></textarea>
+
+          <button class="primary-button full-width" type="submit">보낸 기록 남기기</button>
+          <p class="submit-status" id="send-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+
+      <section class="section seller-note" aria-labelledby="seller-title">
+        <p class="eyebrow">반응 요약</p>
+        <h2 id="seller-title">오늘 모인 신호</h2>
+        <div class="metric-grid">
+          <div>
+            <strong id="vote-count">0</strong>
+            <span>빠른 반응</span>
+          </div>
+          <div>
+            <strong id="comment-count">0</strong>
+            <span>한마디</span>
+          </div>
+        </div>
+        <ul class="note-list" id="note-list">
+          <li>아직 연결된 데이터가 없어요. Google Apps Script URL을 config.js에 넣어주세요.</li>
+        </ul>
+      </section>
+    </main>
+
+    <script src="./config.js?v=20260525-1"></script>
+    <script src="./coach.js?v=20260525-1"></script>
+  </body>
+</html>

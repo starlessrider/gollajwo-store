@@ -1,0 +1,412 @@
+:root {
+  --paper: #fff8ed;
+  --paper-strong: #fff1dc;
+  --ink: #1f2937;
+  --muted: #667085;
+  --line: #262626;
+  --orange: #f97316;
+  --mint: #14b8a6;
+  --blue: #2563eb;
+  --rose: #e11d48;
+  --white: #ffffff;
+  --shadow: 8px 8px 0 #1f2937;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--paper);
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  color: var(--ink);
+  font-family: "Apple SD Gothic Neo", "Pretendard", "Noto Sans KR", sans-serif;
+  letter-spacing: 0;
+  background:
+    linear-gradient(90deg, rgba(31, 41, 55, 0.05) 1px, transparent 1px),
+    linear-gradient(rgba(31, 41, 55, 0.04) 1px, transparent 1px),
+    var(--paper);
+  background-size: 22px 22px;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.app-shell {
+  width: min(100%, 480px);
+  margin: 0 auto;
+  padding: 18px 16px 40px;
+}
+
+.hero {
+  min-height: 92vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  padding: 24px 0 34px;
+}
+
+.brand-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-mark {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  place-items: center;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  background: var(--mint);
+  color: var(--white);
+  font-weight: 900;
+  box-shadow: 4px 4px 0 var(--line);
+}
+
+.brand-name {
+  font-weight: 900;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--orange);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+h1,
+h2,
+p {
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(40px, 13vw, 64px);
+  line-height: 0.98;
+  font-weight: 950;
+}
+
+h2 {
+  margin: 4px 0 0;
+  font-size: 24px;
+  line-height: 1.15;
+  font-weight: 950;
+}
+
+.hero-copy {
+  margin: 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 1.65;
+}
+
+.studio-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  border: 2px solid var(--line);
+  background: var(--white);
+  box-shadow: var(--shadow);
+}
+
+.studio-strip span {
+  padding: 12px 8px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.studio-strip span + span {
+  border-left: 2px solid var(--line);
+}
+
+.section {
+  margin: 22px 0;
+  padding: 18px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: var(--white);
+  box-shadow: 6px 6px 0 var(--line);
+}
+
+.intro-note {
+  background: var(--paper-strong);
+}
+
+.intro-note p,
+.talk-card p,
+.seller-note p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.section-heading {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.product-list {
+  display: grid;
+  gap: 14px;
+}
+
+.product-card {
+  position: relative;
+  padding: 16px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.product-card:nth-child(2) {
+  background: #ecfeff;
+}
+
+.product-card:nth-child(3) {
+  background: #fff1f2;
+}
+
+.product-visual {
+  height: 108px;
+  margin-bottom: 14px;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  background: var(--white);
+  overflow: hidden;
+}
+
+.product-visual svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.product-topline {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.product-card h3 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.price {
+  flex: 0 0 auto;
+  padding: 5px 8px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--white);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.product-card ul {
+  margin: 12px 0 14px;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.reaction-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.reaction-button,
+.primary-button,
+.secondary-button {
+  min-height: 44px;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  color: var(--ink);
+  font-weight: 900;
+  box-shadow: 3px 3px 0 var(--line);
+  transition:
+    transform 140ms ease,
+    box-shadow 140ms ease,
+    background 140ms ease;
+}
+
+.reaction-button {
+  background: var(--white);
+  font-size: 14px;
+}
+
+.reaction-button.is-selected {
+  background: var(--mint);
+  color: var(--white);
+}
+
+.reaction-button:active,
+.primary-button:active,
+.secondary-button:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 var(--line);
+}
+
+.talk-card {
+  background: #eff6ff;
+}
+
+.talk-script {
+  min-height: 96px;
+  padding: 14px;
+  border: 2px dashed var(--blue);
+  border-radius: 8px;
+  background: var(--white);
+  color: var(--ink) !important;
+  font-size: 18px;
+  font-weight: 850;
+}
+
+.button-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.primary-button {
+  background: var(--orange);
+  color: var(--white);
+}
+
+.secondary-button {
+  background: var(--white);
+}
+
+.full-width {
+  width: 100%;
+}
+
+.copy-status {
+  min-height: 22px;
+  margin-top: 10px !important;
+  font-size: 13px;
+}
+
+.feedback-form {
+  display: grid;
+  gap: 10px;
+}
+
+.feedback-form label,
+legend {
+  font-size: 14px;
+  font-weight: 900;
+}
+
+input,
+textarea {
+  width: 100%;
+  border: 2px solid var(--line);
+  border-radius: 6px;
+  padding: 12px;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+textarea {
+  resize: vertical;
+}
+
+fieldset {
+  display: grid;
+  gap: 8px;
+  margin: 4px 0 8px;
+  padding: 12px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+}
+
+.radio-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700 !important;
+}
+
+.radio-row input {
+  width: 18px;
+  height: 18px;
+}
+
+.metric-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.metric-grid div {
+  padding: 12px;
+  border: 2px solid var(--line);
+  border-radius: 8px;
+  background: var(--paper);
+}
+
+.metric-grid strong,
+.metric-grid span {
+  display: block;
+}
+
+.metric-grid strong {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.metric-grid span {
+  margin-top: 5px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.note-list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+@media (min-width: 700px) {
+  .app-shell {
+    width: min(100%, 760px);
+    padding-inline: 24px;
+  }
+
+  .hero {
+    min-height: 82vh;
+  }
+
+  .product-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .reaction-grid {
+    grid-template-columns: 1fr;
+  }
+}

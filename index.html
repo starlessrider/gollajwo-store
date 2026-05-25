@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>골라줘상점</title>
+    <meta
+      name="description"
+      content="친구들이 상품 후보를 골라주며 자연스럽게 대화를 시작하는 판매 전 테스트 페이지"
+    />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%2314B8A6'/%3E%3Cpath d='M18 34l9 9 20-24' fill='none' stroke='white' stroke-width='8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="brand-row" aria-label="브랜드">
+          <span class="brand-mark">✓</span>
+          <span class="brand-name">골라줘상점</span>
+        </div>
+
+        <p class="eyebrow">판매 전 30초 픽 회의</p>
+        <h1 id="hero-title">나 작은 상점 연습 중인데, 뭐가 제일 살 만한지 골라줘.</h1>
+        <p class="hero-copy">
+          아직 판매하는 건 아니야. 친구들 의견 먼저 들어보고, 진짜 만들 상품 하나만 고르려고 해.
+        </p>
+
+        <div class="studio-strip" aria-label="진행 단계">
+          <span>보고</span>
+          <span>누르고</span>
+          <span>한마디</span>
+        </div>
+      </section>
+
+      <section class="section intro-note" aria-labelledby="intro-title">
+        <h2 id="intro-title">부담 없는 부탁</h2>
+        <p>
+          예쁘다는 말보다 더 도움 되는 건 "비싸다", "내 취향은 아니다", "이 구성이면 살 듯" 같은 솔직한
+          반응이야.
+        </p>
+      </section>
+
+      <section class="section" aria-labelledby="product-title">
+        <div class="section-heading">
+          <p class="eyebrow">오늘의 후보</p>
+          <h2 id="product-title">셋 중 하나만 고른다면?</h2>
+        </div>
+
+        <div class="product-list" id="product-list"></div>
+      </section>
+
+      <section class="section" aria-labelledby="feedback-title">
+        <div class="section-heading">
+          <p class="eyebrow">한마디 의견</p>
+          <h2 id="feedback-title">하나만 바꾼다면?</h2>
+        </div>
+
+        <form class="feedback-form" id="feedback-form">
+          <label for="nickname">별명</label>
+          <input id="nickname" name="nickname" type="text" maxlength="16" placeholder="예: 민지" />
+
+          <label for="comment">의견</label>
+          <textarea
+            id="comment"
+            name="comment"
+            rows="4"
+            maxlength="160"
+            placeholder="예: 포장이 예쁘면 선물용으로 좋을 듯"
+          ></textarea>
+
+          <fieldset>
+            <legend>실제로 만들면?</legend>
+            <label class="radio-row">
+              <input type="radio" name="intent" value="살 수도 있어" />
+              <span>살 수도 있어</span>
+            </label>
+            <label class="radio-row">
+              <input type="radio" name="intent" value="가격 보고 결정" />
+              <span>가격 보고 결정</span>
+            </label>
+            <label class="radio-row">
+              <input type="radio" name="intent" value="구경만 할래" />
+              <span>구경만 할래</span>
+            </label>
+          </fieldset>
+
+          <button class="primary-button full-width" type="submit">의견 남기기</button>
+          <p class="submit-status" id="submit-status" role="status" aria-live="polite"></p>
+        </form>
+      </section>
+    </main>
+
+    <script src="./config.js?v=20260525-1"></script>
+    <script src="./app.js?v=20260525-1"></script>
+  </body>
+</html>
