@@ -61,6 +61,14 @@ button {
 .brand-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.brand-lockup {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
   gap: 10px;
 }
 
@@ -79,6 +87,24 @@ button {
 
 .brand-name {
   font-weight: 900;
+}
+
+.seller-login-link {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 3px 3px 0 var(--line);
+}
+
+.seller-login-link:focus-visible {
+  outline: 3px solid var(--blue);
+  outline-offset: 3px;
 }
 
 .eyebrow {
