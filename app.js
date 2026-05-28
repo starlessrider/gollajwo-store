@@ -6,33 +6,6 @@ const localComments = JSON.parse(localStorage.getItem("gollajwo:comments") || "[
 const productList = document.querySelector("#product-list");
 const submitStatus = document.querySelector("#submit-status");
 
-const fallbackProducts = [
-  {
-    id: "sticker",
-    name: "스티커 미니팩",
-    price: "3천원대",
-    items: ["스티커 5장", "미니 봉투", "친구 선물용 메모지"],
-    accent: "#f97316",
-    visual: "stickers",
-  },
-  {
-    id: "birthday",
-    name: "생일 미니팩",
-    price: "5천원대",
-    items: ["작은 포장 봉투", "키링 또는 헤어핀", "축하 카드"],
-    accent: "#14b8a6",
-    visual: "gift",
-  },
-  {
-    id: "photo",
-    name: "포카 꾸미기팩",
-    price: "7천원대",
-    items: ["탑로더", "꾸미기 스티커", "리본 데코"],
-    accent: "#e11d48",
-    visual: "photo",
-  },
-];
-
 function productVisual(type, accent) {
   if (type === "gift") {
     return `
@@ -81,20 +54,62 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
+function displayImageUrl(product) {
+  const fileId = String(product.imageFileId || product.image_file_id || "").trim();
+  if (fileId) {
+    return `https://lh3.googleusercontent.com/d/${encodeURIComponent(fileId)}=w960`;
+  }
+
+  return product.imageUrl || product.image_url || "";
+}
+
+function safeAccent(value) {
+  const color = String(value || "").trim();
+  return /^#[0-9a-fA-F]{3}([0-9a-fA-F]{3})?$/.test(color) ? color : "#f97316";
+}
+
 function normalizeProduct(product) {
   return {
     id: product.id || product.productId || crypto.randomUUID(),
     name: product.name || product.displayName || "이름 없는 상품",
     price: product.price || product.priceLabel || "가격 미정",
+    description: product.description || product.detail || "",
     items: Array.isArray(product.items) ? product.items.filter(Boolean).slice(0, 4) : [],
-    accent: product.accent || "#f97316",
+    accent: safeAccent(product.accent),
     visual: product.visual || "stickers",
-    imageUrl: product.imageUrl || "",
+    imageUrl: displayImageUrl(product),
   };
 }
 
+function renderProductSkeletons() {
+  productList.setAttribute("aria-busy", "true");
+  productList.innerHTML = [0, 1, 2]
+    .map(
+      () => `
+        <article class="product-card product-card-skeleton" aria-hidden="true">
+          <div class="product-visual skeleton-block"></div>
+          <div class="skeleton-row skeleton-title"></div>
+          <div class="skeleton-row skeleton-copy"></div>
+          <div class="skeleton-list">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+          <div class="reaction-grid">
+            <span class="skeleton-button"></span>
+            <span class="skeleton-button"></span>
+            <span class="skeleton-button"></span>
+            <span class="skeleton-button"></span>
+          </div>
+        </article>
+      `,
+    )
+    .join("");
+}
+
 function renderProducts(products) {
-  const normalizedProducts = products.map(normalizeProduct);
+  const normalizedProducts = products.map(normalizeProduct).slice(0, 3);
+  productList.removeAttribute("aria-busy");
 
   if (normalizedProducts.length === 0) {
     productList.innerHTML = '<p class="empty-state">지금은 열려 있는 상품 후보가 없어요.</p>';
@@ -107,16 +122,19 @@ function renderProducts(products) {
         <article class="product-card">
           <div class="product-visual">${
             product.imageUrl
-              ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)} 이미지" loading="lazy" />`
+              ? `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)} 이미지" loading="lazy" data-visual="${escapeHtml(product.visual)}" data-accent="${escapeHtml(product.accent)}" />`
               : productVisual(product.visual, product.accent)
           }</div>
           <div class="product-topline">
             <h3>${escapeHtml(product.name)}</h3>
             <span class="price">${escapeHtml(product.price)}</span>
           </div>
-          <ul>
-            ${product.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}
-          </ul>
+          ${product.description ? `<p class="product-description">${escapeHtml(product.description)}</p>` : ""}
+          ${
+            product.items.length > 0
+              ? `<ul>${product.items.map((item) => `<li>${escapeHtml(item)}</li>`).join("")}</ul>`
+              : ""
+          }
           <div class="reaction-grid" aria-label="${product.name} 반응">
             ${reactions
               .map(
@@ -135,14 +153,16 @@ function renderProducts(products) {
 }
 
 function loadProducts() {
+  renderProductSkeletons();
+
   if (!config.scriptUrl) {
-    renderProducts(fallbackProducts);
+    renderProducts([]);
     return;
   }
 
   const callbackName = `gollajwoProducts${Date.now()}`;
   window[callbackName] = (payload) => {
-    renderProducts(Array.isArray(payload.products) ? payload.products : fallbackProducts);
+    renderProducts(Array.isArray(payload.products) ? payload.products : []);
     delete window[callbackName];
     script.remove();
   };
@@ -150,7 +170,7 @@ function loadProducts() {
   const script = document.createElement("script");
   script.src = `${config.scriptUrl}?action=products&callback=${callbackName}`;
   script.onerror = () => {
-    renderProducts(fallbackProducts);
+    renderProducts([]);
     delete window[callbackName];
     script.remove();
   };
@@ -198,6 +218,19 @@ function flashButton(button, text = "기록됨") {
 }
 
 loadProducts();
+
+productList.addEventListener(
+  "error",
+  (event) => {
+    const image = event.target instanceof HTMLImageElement ? event.target.closest(".product-visual img") : null;
+    if (!image) return;
+
+    const visual = image.dataset.visual || "stickers";
+    const accent = safeAccent(image.dataset.accent);
+    image.closest(".product-visual").innerHTML = productVisual(visual, accent);
+  },
+  true,
+);
 
 productList.addEventListener("click", async (event) => {
   const button = event.target.closest(".reaction-button");

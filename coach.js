@@ -17,11 +17,26 @@ const voteCount = document.querySelector("#vote-count");
 const commentCount = document.querySelector("#comment-count");
 const noteList = document.querySelector("#note-list");
 const sessionKey = "gollajwo:coach-auth";
+const productForm = document.querySelector("#product-form");
+const productSlot = document.querySelector("#product-slot");
+const productImage = document.querySelector("#product-image");
+const imagePreview = document.querySelector("#image-preview");
+const productTitle = document.querySelector("#product-title-input");
+const productPrice = document.querySelector("#product-price-input");
+const productDescription = document.querySelector("#product-description-input");
+const productItems = document.querySelector("#product-items-input");
+const productStatus = document.querySelector("#product-status");
+const managedProductList = document.querySelector("#managed-product-list");
+
+let managedProducts = [null, null, null];
+let selectedImageData = "";
+let productApiReady = false;
 
 function unlockCoach() {
   authGate.hidden = true;
   document.body.classList.add("is-coach-unlocked");
   loadSummary();
+  loadManagedProducts();
 }
 
 function isCoachAuthenticated() {
@@ -143,6 +158,193 @@ function renderSummary(summary) {
   noteList.innerHTML = notes.map((note) => `<li>${escapeHtml(note)}</li>`).join("");
 }
 
+function parseItems(value) {
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 3);
+}
+
+function renderImagePreview(imageUrl) {
+  if (!imageUrl) {
+    imagePreview.innerHTML = "<span>사진 없음</span>";
+    return;
+  }
+
+  imagePreview.innerHTML = `<img src="${escapeHtml(imageUrl)}" alt="선택한 상품 사진 미리보기" />`;
+}
+
+function renderManagedImage(product) {
+  if (!product.imageUrl) {
+    return '<span class="managed-product-photo-fallback" aria-hidden="true">사진</span>';
+  }
+
+  return `<img src="${escapeHtml(product.imageUrl)}" alt="${escapeHtml(product.name)} 사진" />`;
+}
+
+function displayImageUrl(product) {
+  const fileId = String(product.imageFileId || product.image_file_id || "").trim();
+  if (fileId) {
+    return `https://lh3.googleusercontent.com/d/${encodeURIComponent(fileId)}=w960`;
+  }
+
+  return product.imageUrl || product.image_url || "";
+}
+
+function fillProductForm(slot) {
+  const product = managedProducts[slot] || {};
+  selectedImageData = "";
+  productSlot.value = String(slot);
+  productTitle.value = product.name || "";
+  productPrice.value = product.price || "";
+  productDescription.value = product.description || "";
+  productItems.value = Array.isArray(product.items) ? product.items.join(", ") : "";
+  productImage.value = "";
+  renderImagePreview(product.imageUrl || "");
+}
+
+function loadManagedProducts() {
+  renderManagedProductSkeletons();
+
+  if (!config.scriptUrl) {
+    managedProducts = [null, null, null];
+    renderManagedProducts();
+    fillProductForm(Number(productSlot.value || 0));
+    productStatus.textContent = "Apps Script URL이 없어 상품을 저장할 수 없어요.";
+    return;
+  }
+
+  const callbackName = `gollajwoManagedProducts${Date.now()}`;
+  window[callbackName] = (payload) => {
+    if (Array.isArray(payload.products)) {
+      productApiReady = true;
+      managedProducts = [0, 1, 2].map((slot) => normalizeManagedProduct(payload.products[slot]));
+      renderManagedProducts();
+      fillProductForm(Number(productSlot.value || 0));
+    } else {
+      productApiReady = false;
+      productStatus.textContent = "상품 저장 API가 아직 배포되지 않았어요. Apps Script를 새 버전으로 배포해주세요.";
+      loadProductPreview();
+    }
+    delete window[callbackName];
+    script.remove();
+  };
+
+  const script = document.createElement("script");
+  script.src = `${config.scriptUrl}?action=manageProducts&callback=${callbackName}`;
+  script.onerror = () => {
+    productStatus.textContent = "상품 목록을 불러오지 못했어요. Apps Script 배포 상태를 확인해주세요.";
+    delete window[callbackName];
+    script.remove();
+  };
+  document.body.appendChild(script);
+}
+
+function loadProductPreview() {
+  const callbackName = `gollajwoProductPreview${Date.now()}`;
+  window[callbackName] = (payload) => {
+    const products = Array.isArray(payload.products) ? payload.products : [];
+    managedProducts = [0, 1, 2].map((slot) => normalizeManagedProduct(products[slot]));
+    renderManagedProducts();
+    fillProductForm(Number(productSlot.value || 0));
+    delete window[callbackName];
+    script.remove();
+  };
+
+  const script = document.createElement("script");
+  script.src = `${config.scriptUrl}?action=products&callback=${callbackName}`;
+  script.onerror = () => {
+    renderManagedProducts();
+    delete window[callbackName];
+    script.remove();
+  };
+  document.body.appendChild(script);
+}
+
+function renderManagedProductSkeletons() {
+  managedProductList.setAttribute("aria-busy", "true");
+  managedProductList.innerHTML = [0, 1, 2]
+    .map(
+      () => `
+        <div class="managed-product-card managed-product-skeleton" aria-hidden="true">
+          <span class="managed-skeleton-image"></span>
+          <span>
+            <span class="managed-skeleton-line"></span>
+            <span class="managed-skeleton-line short"></span>
+          </span>
+        </div>
+      `,
+    )
+    .join("");
+}
+
+function normalizeManagedProduct(product) {
+  if (!product || !product.id) return null;
+  return {
+    id: product.id,
+    name: product.name || product.displayName || "",
+    price: product.price || product.priceLabel || "",
+    description: product.description || "",
+    items: Array.isArray(product.items) ? product.items.filter(Boolean).slice(0, 3) : [],
+    imageUrl: displayImageUrl(product),
+    imageFileId: product.imageFileId || product.image_file_id || "",
+  };
+}
+
+function renderManagedProducts() {
+  managedProductList.removeAttribute("aria-busy");
+  const slots = [0, 1, 2];
+  managedProductList.innerHTML = slots
+    .map((slot) => {
+      const product = managedProducts[slot];
+      if (!product) {
+        return `
+          <button class="managed-product-card is-empty" type="button" data-slot="${slot}">
+            <strong>${slot + 1}번</strong>
+            <span>비어 있음</span>
+          </button>
+        `;
+      }
+
+      return `
+        <button class="managed-product-card" type="button" data-slot="${slot}">
+          ${renderManagedImage(product)}
+          <span>
+            <strong>${escapeHtml(product.name)}</strong>
+            <small>${escapeHtml(product.price || "가격 미정")}</small>
+          </span>
+        </button>
+      `;
+    })
+    .join("");
+}
+
+function resizeImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error("이미지를 읽지 못했어요."));
+    reader.onload = () => {
+      const image = new Image();
+      image.onerror = () => reject(new Error("이미지 형식을 확인해주세요."));
+      image.onload = () => {
+        const maxWidth = 900;
+        const scale = Math.min(1, maxWidth / image.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(image.width * scale);
+        canvas.height = Math.round(image.height * scale);
+        const context = canvas.getContext("2d");
+        context.fillStyle = "#ffffff";
+        context.fillRect(0, 0, canvas.width, canvas.height);
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.84));
+      };
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
 function escapeHtml(value) {
   return String(value || "")
     .replace(/&/g, "&amp;")
@@ -153,6 +355,102 @@ function escapeHtml(value) {
 }
 
 document.querySelector("#new-script").addEventListener("click", pickScript);
+
+productSlot.addEventListener("change", () => {
+  fillProductForm(Number(productSlot.value || 0));
+  productStatus.textContent = "";
+});
+
+productImage.addEventListener("change", async () => {
+  const file = productImage.files && productImage.files[0];
+  if (!file) return;
+
+  try {
+    productStatus.textContent = "사진을 준비하는 중이에요.";
+    selectedImageData = await resizeImageFile(file);
+    renderImagePreview(selectedImageData);
+    productStatus.textContent = "사진을 넣었어요. 저장하면 판매 페이지에 반영돼요.";
+  } catch (error) {
+    productStatus.textContent = error.message;
+  }
+});
+
+productForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const slot = Number(productSlot.value || 0);
+  const previousProduct = managedProducts[slot] || {};
+  const name = productTitle.value.trim();
+  const price = productPrice.value.trim() || "가격 미정";
+  const description = productDescription.value.trim();
+  const items = parseItems(productItems.value);
+
+  if (!selectedImageData && !previousProduct.imageUrl) {
+    productStatus.textContent = "상품 사진을 먼저 올려주세요.";
+    productImage.focus();
+    return;
+  }
+
+  if (!name || !description) {
+    productStatus.textContent = "제목과 상세 설명은 꼭 적어주세요.";
+    (name ? productDescription : productTitle).focus();
+    return;
+  }
+
+  if (!config.scriptUrl || !productApiReady) {
+    productStatus.textContent = "상품 저장 API가 아직 준비되지 않았어요. Apps Script를 새 버전으로 배포한 뒤 저장해주세요.";
+    return;
+  }
+
+  productStatus.textContent = "상품을 Google Sheet와 Drive에 저장하는 중이에요.";
+  await postToSheet({
+    action: "upsertProduct",
+    slot,
+    title: name,
+    price,
+    description,
+    items,
+    imageData: selectedImageData,
+  });
+
+  managedProducts[slot] = {
+    id: `managed-${slot + 1}`,
+    name,
+    price,
+    description,
+    items,
+    imageUrl: selectedImageData || previousProduct.imageUrl,
+  };
+  selectedImageData = "";
+  renderManagedProducts();
+  productStatus.textContent = `${slot + 1}번 상품 저장을 요청했어요. 판매 페이지에는 최대 3개만 보여요.`;
+});
+
+document.querySelector("#remove-product").addEventListener("click", async () => {
+  const slot = Number(productSlot.value || 0);
+  if (config.scriptUrl && productApiReady) {
+    productStatus.textContent = "상품 자리를 비우는 중이에요.";
+    await postToSheet({
+      action: "removeProduct",
+      slot,
+    });
+  } else {
+    productStatus.textContent = "상품 저장 API가 아직 준비되지 않았어요. Apps Script를 새 버전으로 배포한 뒤 비워주세요.";
+    return;
+  }
+
+  managedProducts[slot] = null;
+  renderManagedProducts();
+  fillProductForm(slot);
+  productStatus.textContent = `${slot + 1}번 상품 자리를 비웠어요.`;
+});
+
+managedProductList.addEventListener("click", (event) => {
+  const card = event.target.closest("[data-slot]");
+  if (!card) return;
+
+  fillProductForm(Number(card.dataset.slot || 0));
+  productStatus.textContent = "선택한 자리를 수정할 수 있어요.";
+});
 
 document.querySelector("#copy-script").addEventListener("click", async () => {
   const text = talkScript.textContent.trim().replace(/^"|"$/g, "");
@@ -186,3 +484,26 @@ document.querySelector("#send-form").addEventListener("submit", async (event) =>
 });
 
 setupAuthGate();
+
+managedProductList.addEventListener(
+  "error",
+  (event) => {
+    const image = event.target instanceof HTMLImageElement ? event.target.closest(".managed-product-card img") : null;
+    if (!image) return;
+
+    const fallback = document.createElement("span");
+    fallback.className = "managed-product-photo-fallback";
+    fallback.textContent = "사진";
+    fallback.setAttribute("aria-hidden", "true");
+    image.replaceWith(fallback);
+  },
+  true,
+);
+
+imagePreview.addEventListener(
+  "error",
+  () => {
+    imagePreview.innerHTML = "<span>사진을 불러오지 못했어요</span>";
+  },
+  true,
+);
